@@ -35,6 +35,8 @@ dependencies {
 
 	// websocket 라이브러리
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	// stomp 라이브러리
+	implementation 'org.webjars:stomp-websocket:2.3.3'
 }
 
 tasks.named('test') {

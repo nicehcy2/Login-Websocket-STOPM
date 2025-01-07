@@ -58,7 +58,7 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
      * 채팅방 번호를 가져오고, 만약 메모리 상에 채팅방에 대한 세션이 없으면 만들어준다.
      * 메세지 ChatMessageDto의 메세지타입이 ENTER라면 채팅룸 세션에 웹소켓 클라이언트의 세션을 넣어준다.
      * 마지막에 sendMessageToChatRoom(chatMessageDto, chatRoomSession) 호출하여 해당 채팅방에 있는 모든 세션에 메세지 전송
-     * @param session 웹 소켓 클라이언트의 세션
+     * @param session 웹 소켓이 연결될 떄 생기는 연결정보를 담고 있는 객체
      * @param message 웹 소켓 통신 메시지
      * @throws Exception
      */
