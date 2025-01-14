@@ -1,3 +1,4 @@
+/*
 package hello.chat.exception.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,13 +18,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+*/
 /**
  * WebSocket Handler 작성
  * 소켓 통신은 서버와 클라이언트가 1:n으로 관계를 맺는다. 따라서 한 서버에 여러 클라이언트 접속 가능
  * 서버에는 여러 클라이언트가 발송한 메시지를 받아 처리해줄 핸들러가 필요
  * TextWebSocketHandler를 상속받아 핸들러를 작성
  * 클라이언트로 받은 메시지를 log로 출력하고 클라이언트로 환영 메시지를 보내줌
- */
+ *//*
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -53,7 +56,8 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
 
     // 소켓 통신 시 메시지의 전송을 다루는 부분
 
-    /**
+    */
+/**
      * // 웹 소켓 통신 메시지를 TextMessage로 받고, 이를 mapper로 파싱하여 ChatMessageDto로 변환
      * 채팅방 번호를 가져오고, 만약 메모리 상에 채팅방에 대한 세션이 없으면 만들어준다.
      * 메세지 ChatMessageDto의 메세지타입이 ENTER라면 채팅룸 세션에 웹소켓 클라이언트의 세션을 넣어준다.
@@ -61,7 +65,8 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
      * @param session 웹 소켓이 연결될 떄 생기는 연결정보를 담고 있는 객체
      * @param message 웹 소켓 통신 메시지
      * @throws Exception
-     */
+     *//*
+
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
@@ -121,3 +126,4 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
         }
     }
 }
+*/
