@@ -26,7 +26,7 @@ public class ChatMessageController {
 
     // 채팅 리스트 반환
     @GetMapping("/chat/{id}")
-    public ResponseEntity<List<STOMPChatMessageDto>> getChatMessages(@PathVariable Long id){
+    public ResponseEntity<List<STOMPChatMessageDto>> getChatMessages(@PathVariable Long id) {
         //임시로 리스트 형식으로 구현, 실제론 DB 접근 필요
         STOMPChatMessageDto test = new STOMPChatMessageDto(1L, "test", "test");
         return ResponseEntity.ok().body(List.of(test));
