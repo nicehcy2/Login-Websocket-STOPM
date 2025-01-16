@@ -32,10 +32,9 @@ public class ChatMessageController {
     // 채팅 리스트 반환
     // 근데 이 메서드는 계속해서 서버 DB에서 가져오므로 성능 문제가 발생함. 가급적 한번만 호출되도록 해야됨.
     @GetMapping("/chat/{id}")
-    public ResponseEntity<List<STOMPChatMessageDto>> getChatMessages(@PathVariable Long id) {
+    public ResponseEntity<List<STOMPChatMessageDto>> getChatMessages(@PathVariable Long id, @RequestParam Long userId) {
 
-        // 로그인 회원 아이디
-        Long userId = 2L;
+        // TODO: 로그인한 회원의 ID
 
         // User - chatroom에서 해당 user가 구독하고 있는 채팅방의 메시지만 디비에서 가져옴.
 
@@ -43,7 +42,6 @@ public class ChatMessageController {
 
         List<STOMPChatMessageDto> messageDtos = messages.stream()
                 .map(STOMPChatMessageDto::of)
-                .filter(message -> message.getSenderId() == userId)
                 .collect(Collectors.toList());
 
         // 타입 변환 필요
@@ -60,12 +58,9 @@ public class ChatMessageController {
         Long roomId = chat.getChatRoomId();
 
         String destination = "/sub/chatroom/" + roomId;
-        if (messageType.equals("TEXT")) {
-
-            // 메시지를 해당 채팅방 구독자들에게 전송
-            template.convertAndSend(destination, chat);
-            messageService.saveMessages(chat);
-            System.out.println("ChatMessageController.receiveMessage");
-        }
+        // 메시지를 해당 채팅방 구독자들에게 전송
+        template.convertAndSend(destination, chat);
+        messageService.saveMessages(chat);
+        System.out.println("ChatMessageController.receiveMessage");
     }
 }
