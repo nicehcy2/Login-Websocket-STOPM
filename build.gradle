@@ -39,6 +39,8 @@ dependencies {
 	implementation 'org.webjars:stomp-websocket:2.3.3'
 	// redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// rabbitmq
+	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 }
 
 tasks.named('test') {
