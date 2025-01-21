@@ -33,14 +33,24 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	// websocket 라이브러리
+	/* websocket 라이브러리 */
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
-	// stomp 라이브러리
+
+	/* stomp 라이브러리 */
 	implementation 'org.webjars:stomp-websocket:2.3.3'
-	// redis
+
+	/* redis */
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	// rabbitmq
+
+	/* Reactor Netty */
+	implementation "org.springframework.boot:spring-boot-starter-reactor-netty" // RabbitMQ에서 브로커 연결 및 통신 설정을 위해 기본으로 사용
+
+	/* rabbitmq */
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
 }
 
 tasks.named('test') {

@@ -2,10 +2,14 @@ package hello.chat.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -14,99 +18,104 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@EnableRabbit
 public class RabbitMQConfig {
 
-    @Value("${spring.rabbitmq.host}")
-    private String rabbitmqHost;
+    private final String CHAT_QUEUE_NAME = "chat.queue";
+    private final String CHAT_EXCHANGE_NAME = "chat.exchange";
+    private final String CHAT_ROUTING_KEY = "chat.room.*";
+    private final String RABBITMQ_HOST = "localhost";
 
-    @Value("${spring.rabbitmq.port}")
-    private int rabbitmqPort;
-
-    @Value("${spring.rabbitmq.username}")
-    private String rabbitmqUsername;
-
-    @Value("${spring.rabbitmq.password}")
-    private String rabbitmqPassword;
-
-    @Value("${rabbitmq.queue.name}")
-    private String queueName;
-
-    @Value("${rabbitmq.exchange.name}")
-    private String exchangeName;
-
-    @Value("${rabbitmq.routing.key}")
-    private String routingKey;
-
-    /**
-     * 지정된 큐 이름으로 Queue 빈을 생성
-     *
-     * @return Queue 빈 객체 새성
-     */
-    @Bean
-    public Queue queue() {
-        return new Queue(queueName);
+    /*
+    public RabbitMQConfig(
+            @Value("${rabbitmq.queue.name}") String CHAT_QUEUE_NAME,
+            @Value("${rabbitmq.exchange.name}") String CHAT_EXCHANGE_NAME,
+            @Value("${rabbitmq.routing.key}") String CHAT_ROUTING_KEY,
+            @Value("${spring.rabbitmq.host}") String RABBITMQ_HOST
+    ) {
+        this.CHAT_QUEUE_NAME = CHAT_QUEUE_NAME;
+        this.CHAT_EXCHANGE_NAME = CHAT_EXCHANGE_NAME;
+        this.CHAT_ROUTING_KEY = CHAT_ROUTING_KEY;
+        this.RABBITMQ_HOST = RABBITMQ_HOST;
     }
 
-    /**
-     * 지정된 익스체인지 이름으로 DirectExchange 빈을 생성
-     *
-     * @return TopicExchange 빈 객체
      */
+
+    // "chat.queue"라는 이름의 Queue 생성
     @Bean
-    public DirectExchange exchange() {
-        return new DirectExchange(exchangeName);
+    public Queue chatQueue() {
+        return new Queue(CHAT_QUEUE_NAME, true); // durable을 true로 제공
     }
 
-    /**
-     * 주어진 큐와 익스체인지를 바인딩하고 라우팅 키를 사용하여 Binding 빈을 생성
-     *
-     * @param queue 바인딩할 queue
-     * @param exchange 바인딩할 DirectExchange
-     * @return Binding 빈 객체
-     */
+    // 4가지 Binding 전략 중 TopicExchange 전략을 사용. "chat.exchange"를 이름으로 지정
     @Bean
-    public Binding binding(Queue queue, DirectExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(routingKey);
+    public TopicExchange chatExchange() {
+        return new TopicExchange(CHAT_EXCHANGE_NAME);
     }
 
-    /**
-     * RabbitMQ 연결을 위한 ConnectionFactory 빈을 생성하여 반환
-     *
-     * @return ConnectionFactory 객체
-     */
+    // Exchange와 Queue 연결. "chat.queue"에 "chat.exchange" 규칙을 Binding
     @Bean
-    public ConnectionFactory connectionFactory() {
-
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
-        connectionFactory.setHost(rabbitmqHost);
-        connectionFactory.setPort(rabbitmqPort);
-        connectionFactory.setUsername(rabbitmqUsername);
-        connectionFactory.setPassword(rabbitmqPassword);
-        return connectionFactory;
+    public Binding chatBinding(Queue chatQueue, TopicExchange chatExchange) {
+        return BindingBuilder
+                .bind(chatQueue)
+                .to(chatExchange)
+                .with(CHAT_ROUTING_KEY);
     }
 
-    /**
-     * RabbitTemplate을 생성하여 반환
-     *
-     * @param connectionFactory RabbitMQ와의 연결을 위한 ConnectionFactory 객체
-     * @return rabbitTemplate 객체
-     */
+    // RabbitMQ와 메시지 담당할 클래스
     @Bean
-    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        // JSON 형식의 메시지를 직렬화하고 역직렬화할 수 있도록 설정
-        rabbitTemplate.setMessageConverter(jackson2JsonMessageConverter());
+    public RabbitTemplate rabbitTemplate() {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(createConnectionFactory());
+        rabbitTemplate.setMessageConverter(messageConverter());
         return rabbitTemplate;
     }
 
-    /**
-     * Jackson 라이브러리를 사용하여 메시지를 JSON 형식으로 변환하는 MessageConverter 빈을 생성
-     *
-     * @return MessageConverter 객체
-     */
+    /*
     @Bean
-    public MessageConverter jackson2JsonMessageConverter() {
+    public RabbitMessagingTemplate rabbitMessagingTemplate(RabbitTemplate rabbitTemplate) {
+        return new RabbitMessagingTemplate(rabbitTemplate);
+    }
+
+     */
+
+    // RabbitMQ와 연결 설정. CachingConnectionFactory를 선택
+    @Bean
+    public ConnectionFactory createConnectionFactory() {
+        CachingConnectionFactory factory = new CachingConnectionFactory();
+        factory.setHost(RABBITMQ_HOST);
+        factory.setUsername("guest"); // RabbitMQ 관리자 아이디
+        factory.setPassword("guest"); // RabbitMQ 관리자 비밀번호
+        factory.setPort(5672); // RabbitMQ 연결할 port
+        factory.setVirtualHost("/"); // vhost 지정
+
+        return factory;
+    }
+
+    /*
+    // Queue를 구독(Subscribe)하는 걸 어떻게 처리하느냐에 따라 필요함. 당장은 없어도 됨.
+    @Bean
+    public SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setMessageConverter(messageConverter);
+        return factory;
+    }
+     */
+
+    // 없어도 잘 동작했었는데, 다른 이슈 처리한다고 명시적으로 선언함;
+    @Bean
+    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
+        rabbitAdmin.declareExchange(chatExchange());
+        rabbitAdmin.declareQueue(chatQueue());
+        rabbitAdmin.declareBinding(chatBinding(chatQueue(), chatExchange()));
+        return rabbitAdmin;
+    }
+
+
+    // 메시지를 JSON으로 직렬/역직렬화
+    @Bean
+    public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 }
