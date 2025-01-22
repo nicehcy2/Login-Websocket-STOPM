@@ -13,9 +13,12 @@ public class MessageController {
 
     private final MessageService chatMessageProducer;
 
+    /*
     @MessageMapping("chat.message.{roomId}")
     public void sendMessage(@DestinationVariable String roomId, RabbitMessageDto message) {
         log.info("sendMessage: roomId={}, message={}", roomId, message);
         chatMessageProducer.sendMessage(message);
     }
+
+     */
 }

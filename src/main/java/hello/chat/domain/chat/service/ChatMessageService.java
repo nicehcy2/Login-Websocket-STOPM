@@ -6,6 +6,8 @@ import hello.chat.domain.chat.repository.ChatRoomRepository;
 import hello.chat.domain.user.entity.User;
 import hello.chat.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +20,11 @@ public class ChatMessageService {
 
     private final UserRepository userRepository;
     private final ChatRoomRepository chatRoomRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate; // redis
+    private final RabbitTemplate rabbitTemplate; // rabbitmq
+
+    @Value("${rabbitmq.exchange.name}")
+    private String CHAT_EXCHANGE_NAME;
 
     public List<MessageDto> findMessages(Long chatRoomId) {
 
@@ -41,5 +47,10 @@ public class ChatMessageService {
 
         String redisKey = "chat:room:" + messageDto.chatRoomId() + ":message";
         redisTemplate.opsForList().leftPush(redisKey, messageDto);
+    }
+
+    // RabbitMQ 브로커를 사용해서 특정 그룹 채팅방에 메시지를 보낸다.
+    public void sendMessage(MessageDto messageDto) {
+        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, "chat.room." + messageDto.chatRoomId(), messageDto);
     }
 }
