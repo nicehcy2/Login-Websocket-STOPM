@@ -1,6 +1,6 @@
 package hello.chat.domain.rabbitmq;
 
-public record MessageDto(
+public record RabbitMessageDto(
         String roomId,
         String content
 ) { }

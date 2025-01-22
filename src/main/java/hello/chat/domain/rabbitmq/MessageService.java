@@ -16,7 +16,7 @@ public class MessageService {
         this.CHAT_EXCHANGE_NAME = CHAT_EXCHANGE_NAME;
     }
 
-    public void sendMessage(MessageDto message) {
+    public void sendMessage(RabbitMessageDto message) {
         rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, "chat.room." + message.roomId(), message);
     }
 }

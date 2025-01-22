@@ -1,6 +1,5 @@
 package hello.chat.domain.redis;
 
-import hello.chat.domain.chat.dto.STOMPChatMessageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;

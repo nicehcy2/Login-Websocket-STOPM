@@ -1,22 +1,20 @@
+/*
 package hello.chat.domain.chat.entity;
 
+import hello.chat.domain.common.BaseEntity;
 import hello.chat.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChatMessage {
+public class Message extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,11 +33,14 @@ public class ChatMessage {
     private String content; // 메시지
     private Integer unreadCount; // 안읽은 사람 수
 
-    /*
+    */
+/*
     @CreatedDate
     private LocalDateTime createdAt;
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-     */
+     *//*
+
 }
+*/

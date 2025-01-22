@@ -51,18 +51,19 @@ public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
         registry.setApplicationDestinationPrefixes("/pub"); // 클라이언트에서 메시지 송신 시 프리픽스
          */
 
-        /*
         // 내장 메시지 브로커를 사용하기 위한 메소드
         // 메시지를 구독(수신)하는 요청 엔드포인트
         registry.enableSimpleBroker("/sub");
 
         // 메시지를 발행(송신)하는 엔드포인트
         registry.setApplicationDestinationPrefixes("/pub");
-         */
 
+        /* Redis
         registry.setPathMatcher(new AntPathMatcher(".")); // URL을 / -> .으로
         registry.setApplicationDestinationPrefixes("/pub");  //  @MessageMapping 메서드로 라우팅된다.  Client에서 SEND 요청을 처리
         registry.enableStompBrokerRelay("/queue", "/topic", "/exchange", "/amq/queue");
+
+         */
     }
 
     /**

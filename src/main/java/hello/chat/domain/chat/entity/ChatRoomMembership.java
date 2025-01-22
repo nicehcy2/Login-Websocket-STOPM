@@ -1,10 +1,11 @@
 package hello.chat.domain.chat.entity;
 
+import hello.chat.domain.common.BaseEntity;
 import hello.chat.domain.user.entity.User;
 import jakarta.persistence.*;
 
 @Entity
-public class ChatRoomMembership {
+public class ChatRoomMembership extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

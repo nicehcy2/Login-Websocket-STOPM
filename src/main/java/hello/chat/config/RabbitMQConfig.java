@@ -1,3 +1,4 @@
+/*
 package hello.chat.config;
 
 import org.springframework.amqp.core.Binding;
@@ -26,7 +27,8 @@ public class RabbitMQConfig {
     private final String CHAT_ROUTING_KEY = "chat.room.*";
     private final String RABBITMQ_HOST = "localhost";
 
-    /*
+    */
+/*
     public RabbitMQConfig(
             @Value("${rabbitmq.queue.name}") String CHAT_QUEUE_NAME,
             @Value("${rabbitmq.exchange.name}") String CHAT_EXCHANGE_NAME,
@@ -39,7 +41,8 @@ public class RabbitMQConfig {
         this.RABBITMQ_HOST = RABBITMQ_HOST;
     }
 
-     */
+     *//*
+
 
     // "chat.queue"라는 이름의 Queue 생성
     @Bean
@@ -70,13 +73,15 @@ public class RabbitMQConfig {
         return rabbitTemplate;
     }
 
-    /*
+    */
+/*
     @Bean
     public RabbitMessagingTemplate rabbitMessagingTemplate(RabbitTemplate rabbitTemplate) {
         return new RabbitMessagingTemplate(rabbitTemplate);
     }
 
-     */
+     *//*
+
 
     // RabbitMQ와 연결 설정. CachingConnectionFactory를 선택
     @Bean
@@ -91,7 +96,8 @@ public class RabbitMQConfig {
         return factory;
     }
 
-    /*
+    */
+/*
     // Queue를 구독(Subscribe)하는 걸 어떻게 처리하느냐에 따라 필요함. 당장은 없어도 됨.
     @Bean
     public SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
@@ -100,7 +106,8 @@ public class RabbitMQConfig {
         factory.setMessageConverter(messageConverter);
         return factory;
     }
-     */
+     *//*
+
 
     // 없어도 잘 동작했었는데, 다른 이슈 처리한다고 명시적으로 선언함;
     @Bean
@@ -119,3 +126,4 @@ public class RabbitMQConfig {
         return new Jackson2JsonMessageConverter();
     }
 }
+*/

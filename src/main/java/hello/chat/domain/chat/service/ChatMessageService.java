@@ -1,50 +1,45 @@
 package hello.chat.domain.chat.service;
 
-import hello.chat.domain.chat.dto.STOMPChatMessageDto;
-import hello.chat.domain.chat.entity.ChatMessage;
+import hello.chat.domain.chat.dto.MessageDto;
 import hello.chat.domain.chat.entity.ChatRoom;
-import hello.chat.domain.chat.entity.MessageType;
-import hello.chat.domain.chat.repository.ChatMessageRepository;
 import hello.chat.domain.chat.repository.ChatRoomRepository;
 import hello.chat.domain.user.entity.User;
 import hello.chat.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ChatMessageService {
 
-    private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public List<ChatMessage> findMessages(Long chatRoomId) {
+    public List<MessageDto> findMessages(Long chatRoomId) {
 
-        return chatMessageRepository.findChatMessagesByChatRoomId(chatRoomId);
+        String redisKey = "chat:room:" + chatRoomId + ":message";
+        List<Object> messgeList = redisTemplate.opsForList().range(redisKey, 0, -1);
+
+        return messgeList.stream()
+                .map(object -> (MessageDto) object)
+                .toList();
     }
 
     @Transactional
-    public void saveMessages(STOMPChatMessageDto chat) {
+    public void saveMessages(MessageDto messageDto) {
 
-        User sender = userRepository.findById(chat.getSenderId())
+        User sender = userRepository.findById(messageDto.senderId() )
                 .orElseThrow(() -> new RuntimeException());
 
-        ChatRoom chatRoom = chatRoomRepository.findById(chat.getChatRoomId())
+        ChatRoom chatRoom = chatRoomRepository.findById(messageDto.chatRoomId())
                 .orElseThrow(() -> new RuntimeException());
 
-        ChatMessage chatMessage = ChatMessage.builder()
-                .user(sender)
-                .chatRoom(chatRoom)
-                .messageType(MessageType.TEXT) // 수정 필요
-                .content(chat.getContent())
-                .unreadCount(10)
-                .build();
-
-        chatMessageRepository.save(chatMessage);
+        String redisKey = "chat:room:" + messageDto.chatRoomId() + ":message";
+        redisTemplate.opsForList().leftPush(redisKey, messageDto);
     }
 }

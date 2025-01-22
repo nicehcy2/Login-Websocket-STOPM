@@ -1,10 +1,7 @@
 package hello.chat.domain.chat.controller;
 
-import hello.chat.domain.chat.dto.STOMPChatMessageDto;
-import hello.chat.domain.chat.entity.ChatMessage;
+import hello.chat.domain.chat.dto.MessageDto;
 import hello.chat.domain.chat.service.ChatMessageService;
-import hello.chat.domain.user.entity.User;
-import hello.chat.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -12,7 +9,6 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * STOMP의 가공 핸들러
@@ -31,18 +27,14 @@ public class ChatMessageController {
 
     // 채팅 리스트 반환
     // 근데 이 메서드는 계속해서 서버 DB에서 가져오므로 성능 문제가 발생함. 가급적 한번만 호출되도록 해야됨.
-    @GetMapping("/chat/{id}")
-    public ResponseEntity<List<STOMPChatMessageDto>> getChatMessages(@PathVariable Long id, @RequestParam Long userId) {
+    @GetMapping("/chat/{chatRoomId}")
+    public ResponseEntity<List<MessageDto>> getChatMessages(@PathVariable Long chatRoomId) {
 
         // TODO: 로그인한 회원의 ID
 
         // User - chatroom에서 해당 user가 구독하고 있는 채팅방의 메시지만 디비에서 가져옴.
 
-        List<ChatMessage> messages = messageService.findMessages(id);
-
-        List<STOMPChatMessageDto> messageDtos = messages.stream()
-                .map(STOMPChatMessageDto::of)
-                .collect(Collectors.toList());
+        List<MessageDto> messageDtos = messageService.findMessages(chatRoomId);
 
         // 타입 변환 필요
         return ResponseEntity.ok().body(messageDtos);
@@ -51,11 +43,11 @@ public class ChatMessageController {
     // 메시지 송신 및 수신, /pub가 생략된 모습. 클라이언트 단에선 /pub/message로 요청
     // 여기서 사용자가 보낸 메시지를 해석해서 알맞은 그룹 채팅방으로 보내야됨.
     @MessageMapping("/message")
-    public void receiveMessage(@RequestBody STOMPChatMessageDto chat) {
+    public void receiveMessage(@RequestBody MessageDto chat) {
 
         // 메시지 해석
-        String messageType = chat.getMessageType();
-        Long roomId = chat.getChatRoomId();
+        String messageType = chat.messageType();
+        Long roomId = chat.chatRoomId();
 
         String destination = "/sub/chatroom/" + roomId;
         // 메시지를 해당 채팅방 구독자들에게 전송

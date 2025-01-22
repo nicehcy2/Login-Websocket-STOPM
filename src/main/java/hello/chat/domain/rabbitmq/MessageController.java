@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @Controller
@@ -15,7 +14,7 @@ public class MessageController {
     private final MessageService chatMessageProducer;
 
     @MessageMapping("chat.message.{roomId}")
-    public void sendMessage(@DestinationVariable String roomId, MessageDto message) {
+    public void sendMessage(@DestinationVariable String roomId, RabbitMessageDto message) {
         log.info("sendMessage: roomId={}, message={}", roomId, message);
         chatMessageProducer.sendMessage(message);
     }
