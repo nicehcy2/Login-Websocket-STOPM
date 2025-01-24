@@ -25,6 +25,7 @@ public class ChatMessageService {
 
     @Value("${rabbitmq.exchange.name}")
     private String CHAT_EXCHANGE_NAME;
+    private static final String READ_STATUS_KEY_PREFIX = "read:message:";
 
     public List<MessageDto> findMessages(Long chatRoomId) {
 
@@ -52,5 +53,17 @@ public class ChatMessageService {
     // RabbitMQ 브로커를 사용해서 특정 그룹 채팅방에 메시지를 보낸다.
     public void sendMessage(MessageDto messageDto) {
         rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, "chat.room." + messageDto.chatRoomId(), messageDto);
+    }
+
+    // 메시지 읽음 처리
+    public void markMessageAsRead(Long chatRoomId, Long messageId, Long userId) {
+        String key = READ_STATUS_KEY_PREFIX + chatRoomId.toString() + ":" + messageId.toString();
+        redisTemplate.opsForSet().add(key, userId);
+    }
+
+    // 메시지 읽음 수 조회
+    public long getReadCount(Long chatRoomId, Long messageId) {
+        String key = READ_STATUS_KEY_PREFIX + chatRoomId.toString() + ":" + messageId.toString();
+        return redisTemplate.opsForSet().size(key);
     }
 }

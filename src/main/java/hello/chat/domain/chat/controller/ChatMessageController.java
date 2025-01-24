@@ -2,13 +2,11 @@ package hello.chat.domain.chat.controller;
 
 import hello.chat.domain.chat.dto.MessageDto;
 import hello.chat.domain.chat.service.ChatMessageService;
-import hello.chat.domain.rabbitmq.RabbitMessageDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -67,5 +65,17 @@ public class ChatMessageController {
         messageService.sendMessage(messageDto);
         messageService.saveMessages(messageDto);
         log.info("send message");
+    }
+
+    // 메시지 읽음 처리
+    @PostMapping("/message/{chatroomId}/{messageId}/read")
+    public void markAsRead(@PathVariable Long chatroomId, @PathVariable Long messageId, @RequestParam Long userId) {
+        messageService.markMessageAsRead(chatroomId, messageId, userId);
+    }
+
+    // 메시지 읽은 유저 수 조회
+    @GetMapping("/message/{chatroomId}/{messageId}/read/count")
+    public long getReadCount(@PathVariable Long chatroomId, @PathVariable Long messageId) {
+        return messageService.getReadCount(chatroomId, messageId);
     }
 }
