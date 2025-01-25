@@ -55,6 +55,14 @@ public class ChatMessageService {
         rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, "chat.room." + messageDto.chatRoomId(), messageDto);
     }
 
+    public void enterMessage(MessageDto messageDto) {
+        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, "chat.room." + messageDto.chatRoomId(), messageDto);
+    }
+
+    public void exitMessage(MessageDto messageDto) {
+        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, "chat.room." + messageDto.chatRoomId(), messageDto);
+    }
+
     // 메시지 읽음 처리
     public void markMessageAsRead(Long chatRoomId, Long messageId, Long userId) {
         String key = READ_STATUS_KEY_PREFIX + chatRoomId.toString() + ":" + messageId.toString();

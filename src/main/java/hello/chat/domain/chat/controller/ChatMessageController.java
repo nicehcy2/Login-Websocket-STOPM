@@ -68,6 +68,7 @@ public class ChatMessageController {
     }
 
     // 메시지 읽음 처리
+    // fixme: 근데 이거 잘하면 얘도 웹소켓으로 처리해도 될듯? 프론트랑 상의 필요
     @PostMapping("/message/{chatroomId}/{messageId}/read")
     public void markAsRead(@PathVariable Long chatroomId, @PathVariable Long messageId, @RequestParam Long userId) {
         messageService.markMessageAsRead(chatroomId, messageId, userId);
@@ -77,5 +78,40 @@ public class ChatMessageController {
     @GetMapping("/message/{chatroomId}/{messageId}/read/count")
     public long getReadCount(@PathVariable Long chatroomId, @PathVariable Long messageId) {
         return messageService.getReadCount(chatroomId, messageId);
+    }
+
+    // 채팅방 입장
+    @MessageMapping("chat.enter.{roomId}")
+    public void enterUser(@DestinationVariable("roomId") Long roomId, MessageDto messageDto) {
+
+        //messageDto.setMessage(messageDto.senderId() + "님이 채팅방에 입장하였습니다.");
+        MessageDto enterMessageDto = MessageDto.builder()
+                .id(messageDto.id())
+                .messageType(messageDto.messageType())
+                .content(messageDto.senderId() + "님이 채팅방에 입장하였습니다.")
+                .chatRoomId(messageDto.chatRoomId())
+                .senderId(messageDto.senderId())
+                .timestamp(messageDto.timestamp())
+                .build();
+
+        messageService.enterMessage(enterMessageDto);
+        messageService.saveMessages(enterMessageDto);
+    }
+
+    @MessageMapping("chat.exit.{roomId}")
+    public void exitUser(@DestinationVariable("roomId") Long roomId, MessageDto messageDto) {
+
+        //messageDto.setMessage(messageDto.senderId() + "님이 채팅방에 입장하였습니다.");
+        MessageDto exitMessageDto = MessageDto.builder()
+                .id(messageDto.id())
+                .messageType(messageDto.messageType())
+                .content(messageDto.senderId() + "님이 채팅방에 퇴장하였습니다.")
+                .chatRoomId(messageDto.chatRoomId())
+                .senderId(messageDto.senderId())
+                .timestamp(messageDto.timestamp())
+                .build();
+
+        messageService.exitMessage(exitMessageDto);
+        messageService.saveMessages(exitMessageDto);
     }
 }
