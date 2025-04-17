@@ -55,7 +55,12 @@ public class RabbitMQConsumer {
 
             log.error("메시지 처리 중 Redis 트랜잭션 실패 또는 기타 예외: {}", e.getMessage(), e);
             // 예외 발생 -> NACK
-            channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+            channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, false);
         }
+    }
+
+    @RabbitListener(queues = "deadLetterQueue")
+    public void handleDeadLetter(MessageDto dto) {
+        log.info("dead message = {}", dto.id());
     }
 }

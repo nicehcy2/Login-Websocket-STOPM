@@ -3,10 +3,7 @@ package hello.chat.config;
 import hello.chat.domain.chat.dto.MessageCorrelationData;
 import hello.chat.domain.chat.dto.MessageDto;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
@@ -30,6 +27,9 @@ public class RabbitMQConfig {
     private final String CHAT_QUEUE_NAME; // RabbitMQ Queue 이름
     private final String CHAT_EXCHANGE_NAME; // RabbitMQ Exchange 이름
     private final String CHAT_ROUTING_KEY; // RabbitMQ Binding 이름, TopicExchange를 사용하기에 Binding이 routing 역할을 수행하도록 한다.
+    private final String DEAD_LETTER_QUEUE_NAME;
+    private final String DEAD_LETTER_EXCHANGE_NAME;
+    private final String DEAD_LETTER_ROUTING_KEY;
     private final String RABBITMQ_HOST;
     private final CachingConnectionFactory.ConfirmType PUBLISHER_CONFIRM_TYPE;
     private final Boolean PUBLISHER_RETURNS;
@@ -42,6 +42,9 @@ public class RabbitMQConfig {
             @Value("${rabbitmq.queue.name}") String CHAT_QUEUE_NAME,
             @Value("${rabbitmq.exchange.name}") String CHAT_EXCHANGE_NAME,
             @Value("${rabbitmq.routing.key}") String CHAT_ROUTING_KEY,
+            @Value("${rabbitmq.dead-queue.name}") String DEAD_LETTER_QUEUE_NAME,
+            @Value("${rabbitmq.dead-exchange.name}") String DEAD_LETTER_EXCHANGE_NAME,
+            @Value("${rabbitmq.dead-routing.key}") String DEAD_LETTER_ROUTING_KEY,
             @Value("${spring.rabbitmq.host}") String RABBITMQ_HOST,
             @Value("${spring.rabbitmq.publisher-confirm-type}") CachingConnectionFactory.ConfirmType PUBLISHER_CONFIRM_TYPE,
             @Value("${spring.rabbitmq.publisher-returns}") Boolean PUBLISHER_RETURNS,
@@ -53,6 +56,9 @@ public class RabbitMQConfig {
         this.CHAT_QUEUE_NAME = CHAT_QUEUE_NAME;
         this.CHAT_EXCHANGE_NAME = CHAT_EXCHANGE_NAME;
         this.CHAT_ROUTING_KEY = CHAT_ROUTING_KEY;
+        this.DEAD_LETTER_QUEUE_NAME = DEAD_LETTER_QUEUE_NAME;
+        this.DEAD_LETTER_EXCHANGE_NAME = DEAD_LETTER_EXCHANGE_NAME;
+        this.DEAD_LETTER_ROUTING_KEY = DEAD_LETTER_ROUTING_KEY;
         this.RABBITMQ_HOST = RABBITMQ_HOST;
         this.PUBLISHER_CONFIRM_TYPE = PUBLISHER_CONFIRM_TYPE;
         this.PUBLISHER_RETURNS = PUBLISHER_RETURNS;
@@ -62,12 +68,19 @@ public class RabbitMQConfig {
     }
 
     /**
+     * 해당 큐에서는 속성 값으로 x-dead-letter-exchange가 발생시 deadLetterExchange로 라우팅 됩니다
+     * 해당 큐에서는 속성 값으로 x-dead-letter-routing-key를 통해 Direct Queue의 라우팅 키를 전달하여 라우팅 됩니다.
+     *
      * @return "chat.queue"라는 이름의 Queue 생성
      */
     @Bean
     public Queue chatQueue() {
 
-        return new Queue(CHAT_QUEUE_NAME, true); // durable을 true로 제공
+        // return new Queue(CHAT_QUEUE_NAME, true); // durable을 true로 제공
+        return QueueBuilder.durable(CHAT_QUEUE_NAME)
+                .withArgument("x-dead-letter-exchange", DEAD_LETTER_EXCHANGE_NAME)
+                .withArgument("x-dead-letter-routing-key", DEAD_LETTER_ROUTING_KEY)
+                .build();
     }
 
     /**
@@ -96,6 +109,46 @@ public class RabbitMQConfig {
                 .bind(chatQueue)
                 .to(chatExchange)
                 .with(CHAT_ROUTING_KEY);
+    }
+
+    /**
+     * Queue 구성 : Dead Letter Queue로 이용
+     * - 성공적으로 처리하지 못한 메시지가 해당 큐에 들어옵니다.
+     *
+     * @return
+     */
+    @Bean
+    public Queue deadLetterQueue() {
+
+        return new Queue(DEAD_LETTER_QUEUE_NAME, true); // durable을 true로 제공
+    }
+
+    /**
+     * Direct Exchange 구성 : Dead Letter Exchange로 라우팅을 하는데 사용
+     * - 성공적으로 처리하지 못한 메시지를 메시지 큐(deadLetterQueue)로 전달하는 역할을 수행합니다.
+     *
+     * @return
+     */
+    @Bean
+    public DirectExchange deadLetterExchange() {
+
+        return new DirectExchange(DEAD_LETTER_EXCHANGE_NAME);
+    }
+
+    /**
+     * Direct Exchange 와 deadLetterQueue 간의 바인딩을 수행합니다.
+     * Direct Exchange 방식으로 deadLetterQueue와 라우팅 키(Routing key)를 기반으로 바인딩 수행.
+     *
+     * @param deadLetterQueue    성공적으로 처리하지 못한 메시지를 담는 공간
+     * @param deadLetterExchange 성공적으로 처리하지 못한 메시지를 라우팅
+     * @return
+     */
+    @Bean
+    public Binding deadLetterBinding(Queue deadLetterQueue, DirectExchange deadLetterExchange) {
+        return BindingBuilder
+                .bind(deadLetterQueue)
+                .to(deadLetterExchange)
+                .with(DEAD_LETTER_ROUTING_KEY);
     }
 
     /**
@@ -215,7 +268,7 @@ public class RabbitMQConfig {
     public SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
 
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory);
+
         factory.setMessageConverter(messageConverter);
 
         // 메시지 리스너 컨테이너 재시도 동작
