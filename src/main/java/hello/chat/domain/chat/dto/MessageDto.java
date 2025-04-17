@@ -6,22 +6,15 @@ import java.time.LocalDateTime;
 
 @Builder
 public record MessageDto(
-        Long id,
-        String messageType,
-        String content,
-        Long chatRoomId, // 그룹 채팅 방 번호 -> 클라이언트에서 보내줘야 될듯?
-        Long senderId,
-        LocalDateTime timestamp
+        String id,
+        Long chatRoomId, // 목적지(전달할 그룹 채팅방) ID
+        Long senderId, // 발신인 ID
+        String messageType, // 메시지 타입(텍스트, 사진, 영수증)
+        String content, // 메시지 내용
+        LocalDateTime timestamp, // 타임스탬프
+        Integer unreadCount, // 읽지 않은 사용자
+        Boolean rabbitMQTransmissionStatus, // RabbitMQ로 메시지 전송이 되었는지
+        Boolean finalTransmissionStatus, // 최종적으로 메시지 전송이 되었는지
+        Boolean saveStatus // Redis 저장 여부
 ) {
-    /*
-    public static MessageDto of(Message message) {
-
-        return MessageDto.builder()
-                .messageType(message.getMessageType().toString())
-                .content(message.getContent())
-                .chatRoomId(message.getChatRoom().getId())
-                .senderId(message.getUser().getId())
-                .build();
-    }
-     */
 }
