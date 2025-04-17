@@ -206,7 +206,12 @@ public class RabbitMQConfig {
                     // 최대 3 번까지만 재전송 가능
                     if (updatedMessageDto.publishRetryCount() < 3) {
                         MessageCorrelationData retryCorrelationData = new MessageCorrelationData(updatedMessageDto.id(), updatedMessageDto);
-                        rabbitTemplate.convertAndSend("exchange", "routing.key", updatedMessageDto, retryCorrelationData);
+                        rabbitTemplate.convertAndSend("exchange", "routing.key", updatedMessageDto,
+                                msg -> {
+                                    msg.getMessageProperties().setExpiration("1000");
+                                    return msg;
+                                },
+                                retryCorrelationData);
                     }
                 }
             }

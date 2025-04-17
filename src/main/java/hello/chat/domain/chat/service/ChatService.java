@@ -61,7 +61,12 @@ public class ChatService {
                 .build();
 
         MessageCorrelationData messageCorrelationData = new MessageCorrelationData(message.id(), message);
-        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, "chat.room." + messageDto.chatRoomId(), message, messageCorrelationData);
+        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, "chat.room." + messageDto.chatRoomId(), message,
+                msg -> {
+                    msg.getMessageProperties().setExpiration("5000");
+                    return msg;
+                },
+                messageCorrelationData);
         log.info("A message:{} delivery attempt has been made.", message.id());
     }
 
