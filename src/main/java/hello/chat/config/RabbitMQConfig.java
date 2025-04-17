@@ -1,5 +1,7 @@
 package hello.chat.config;
 
+import hello.chat.domain.chat.dto.MessageCorrelationData;
+import hello.chat.domain.chat.dto.MessageDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -28,7 +30,7 @@ public class RabbitMQConfig {
     private final String CHAT_ROUTING_KEY; // RabbitMQ Binding 이름, TopicExchange를 사용하기에 Binding이 routing 역할을 수행하도록 한다.
     private final String RABBITMQ_HOST;
     private final CachingConnectionFactory.ConfirmType PUBLISHER_CONFIRM_TYPE;
-    private final boolean PUBLISHER_RETURNS;
+    private final Boolean PUBLISHER_RETURNS;
     private final int RABBITMQ_PORT;
     private final String RABBITMQ_USERNAME;
     private final String RABBITMQ_PASSWORD;
@@ -40,7 +42,7 @@ public class RabbitMQConfig {
             @Value("${rabbitmq.routing.key}") String CHAT_ROUTING_KEY,
             @Value("${spring.rabbitmq.host}") String RABBITMQ_HOST,
             @Value("${spring.rabbitmq.publisher-confirm-type}") CachingConnectionFactory.ConfirmType PUBLISHER_CONFIRM_TYPE,
-            @Value("{spring.rabbitmq.publisher-returns}") boolean PUBLISHER_RETURNS,
+            @Value("${spring.rabbitmq.publisher-returns}") Boolean PUBLISHER_RETURNS,
             @Value("${spring.rabbitmq.port}") int RABBITMQ_PORT,
             @Value("${spring.rabbitmq.username}") String RABBITMQ_USERNAME,
             @Value("${spring.rabbitmq.password}") String RABBITMQ_PASSWORD
@@ -126,7 +128,32 @@ public class RabbitMQConfig {
                 log.info("Message successfully sent to broker");
             } else { // 메시지가 RabbitMQ 서버에 전달되지 못했을 때
                 log.error("Message failed to send to broker: {}, cause: {}", correlationData.getId(), cause);
-                // TODO: 재전송 로직
+
+                // correlationData에서 messageDto 꺼내기
+                if (correlationData instanceof MessageCorrelationData mcd) {
+
+                    MessageDto messageDto = mcd.getMessageDto();
+
+                    MessageDto updatedMessageDto = MessageDto.builder()
+                            .id(messageDto.id())
+                            .chatRoomId(messageDto.chatRoomId())
+                            .senderId(messageDto.senderId())
+                            .messageType(messageDto.messageType())
+                            .content(messageDto.content())
+                            .timestamp(messageDto.timestamp())
+                            .unreadCount(messageDto.unreadCount())
+                            .publishRetryCount(messageDto.publishRetryCount() + 1)
+                            .saveStatus(messageDto.saveStatus())
+                            .build();
+
+                    log.info("Attempting to resend message: {}", updatedMessageDto);
+
+                    // 최대 3 번까지만 재전송 가능
+                    if (updatedMessageDto.publishRetryCount() < 3) {
+                        MessageCorrelationData retryCorrelationData = new MessageCorrelationData(updatedMessageDto.id(), updatedMessageDto);
+                        rabbitTemplate.convertAndSend("exchange", "routing.key", updatedMessageDto, retryCorrelationData);
+                    }
+                }
             }
         });
 

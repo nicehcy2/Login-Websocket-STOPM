@@ -1,9 +1,10 @@
 package hello.chat.domain.chat.controller;
 
 import hello.chat.domain.chat.dto.MessageDto;
-import hello.chat.domain.chat.service.ChatMessageService;
+import hello.chat.domain.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.AmqpException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -22,10 +23,9 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class ChatMessageController {
+public class ChatController {
 
-    // private final SimpMessageSendingOperations template; // 내장 STOMP 브로커
-    private final ChatMessageService messageService;
+    private final ChatService messageService;
 
     // 채팅 리스트 반환
     // 근데 이 메서드는 계속해서 서버 DB에서 가져오므로 성능 문제가 발생함. 가급적 한번만 호출되도록 해야됨.
@@ -42,29 +42,19 @@ public class ChatMessageController {
         return ResponseEntity.ok().body(messageDtos);
     }
 
-    // 메시지 송신 및 수신, /pub가 생략된 모습. 클라이언트 단에선 /pub/message로 요청
-    // 여기서 사용자가 보낸 메시지를 해석해서 알맞은 그룹 채팅방으로 보내야됨.
-    //@MessageMapping("/message") // 내장 STOMP 경로
+    /**
+     * 채팅 메시지를 특정 채팅방(roomId)으로 전송.
+     * 클라이언트가 STOMP 프로토콜을 사용해 "chat.message.{roomId}" 경로로 메시지를 전송하면 처리.
+     *
+     * @param roomId      채팅방 ID (STOMP 경로 변수)
+     * @param messageDto  전송된 메시지 데이터
+     */
     @MessageMapping("chat.message.{roomId}")
     public void sendMessage(@DestinationVariable String roomId, @RequestBody MessageDto messageDto) {
 
-        /* 내장 STOMP
-        // 메시지 해석
-        Long roomId = messageDto.chatRoomId();
+        messageService.sendMessage(messageDto); // 메시지 전송
 
-        String destination = "/sub/chatroom/" + roomId;
-        // 메시지를 해당 채팅방 구독자들에게 전송
-        template.convertAndSend(destination, messageDto);
-        messageService.saveMessages(messageDto);
-        System.out.println("ChatMessageController.receiveMessage");
-         */
-
-        // roomId가 올바르게 전달되는지 확인하는 로그
-        System.out.println("Received message for room: " + roomId);
-
-        messageService.sendMessage(messageDto);
-        messageService.saveMessages(messageDto);
-        log.info("send message");
+        // messageService.saveMessages(messageDto);
     }
 
     // 메시지 읽음 처리
@@ -94,7 +84,14 @@ public class ChatMessageController {
                 .timestamp(messageDto.timestamp())
                 .build();
 
-        messageService.enterMessage(enterMessageDto);
+        try {
+            messageService.enterMessage(enterMessageDto);
+        } catch (AmqpException e) {
+            System.out.println("AMQP 예외");
+        } catch (Exception e) {
+            System.out.println("예외" + e);
+        }
+
         messageService.saveMessages(enterMessageDto);
     }
 

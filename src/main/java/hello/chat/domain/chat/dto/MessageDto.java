@@ -13,8 +13,7 @@ public record MessageDto(
         String content, // 메시지 내용
         LocalDateTime timestamp, // 타임스탬프
         Integer unreadCount, // 읽지 않은 사용자
-        Boolean rabbitMQTransmissionStatus, // RabbitMQ로 메시지 전송이 되었는지
-        Boolean finalTransmissionStatus, // 최종적으로 메시지 전송이 되었는지
+        Integer publishRetryCount, // 메시지 전송 재시도 횟수
         Boolean saveStatus // Redis 저장 여부
 ) {
 }
