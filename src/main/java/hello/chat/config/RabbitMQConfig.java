@@ -8,12 +8,14 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
@@ -215,6 +217,14 @@ public class RabbitMQConfig {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(messageConverter);
+
+        // 메시지 리스너 컨테이너 재시도 동작
+        factory.setAdviceChain(
+                RetryInterceptorBuilder.stateless() // 실패한 메시지를 다시 처리하되, 상태를 유지하지 않음
+                        .maxAttempts(3) // 최대 3회까지 재시도
+                        .backOffOptions(1000, 2, 2000) // 첫 재시도는 1초 후, 그 다음은 2초, 4초 (exponential backoff)
+                        .recoverer(new RejectAndDontRequeueRecoverer()) // 3회 모두 실패 시 → 메시지를 ack 처리 없이 거부(reject)하고 requeue 하지 않음
+                        .build());
 
         factory.setPrefetchCount(100); // 한 번에 100개만 처리 가능
 

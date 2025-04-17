@@ -74,7 +74,6 @@ public class ChatController {
     @MessageMapping("chat.enter.{roomId}")
     public void enterUser(@DestinationVariable("roomId") Long roomId, MessageDto messageDto) {
 
-        //messageDto.setMessage(messageDto.senderId() + "님이 채팅방에 입장하였습니다.");
         MessageDto enterMessageDto = MessageDto.builder()
                 .id(messageDto.id())
                 .messageType(messageDto.messageType())
@@ -91,14 +90,11 @@ public class ChatController {
         } catch (Exception e) {
             System.out.println("예외" + e);
         }
-
-        messageService.saveMessages(enterMessageDto);
     }
 
     @MessageMapping("chat.exit.{roomId}")
     public void exitUser(@DestinationVariable("roomId") Long roomId, MessageDto messageDto) {
 
-        //messageDto.setMessage(messageDto.senderId() + "님이 채팅방에 입장하였습니다.");
         MessageDto exitMessageDto = MessageDto.builder()
                 .id(messageDto.id())
                 .messageType(messageDto.messageType())
@@ -108,7 +104,12 @@ public class ChatController {
                 .timestamp(messageDto.timestamp())
                 .build();
 
-        messageService.exitMessage(exitMessageDto);
-        messageService.saveMessages(exitMessageDto);
+        try {
+            messageService.exitMessage(exitMessageDto);
+        } catch (AmqpException e) {
+            System.out.println("AMQP 예외");
+        } catch (Exception e) {
+            System.out.println("예외" + e);
+        }
     }
 }

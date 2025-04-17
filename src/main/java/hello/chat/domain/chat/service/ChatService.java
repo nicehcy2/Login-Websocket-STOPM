@@ -26,8 +26,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ChatService {
 
-    private final UserRepository userRepository;
-    private final ChatRoomRepository chatRoomRepository;
     private final RedisTemplate<String, Object> redisTemplate; // redis
     private final RabbitTemplate rabbitTemplate; // rabbitmq
 
@@ -45,19 +43,6 @@ public class ChatService {
                 .toList();
     }
 
-    @Transactional
-    public void saveMessages(MessageDto messageDto) {
-
-        User sender = userRepository.findById(messageDto.senderId() )
-                .orElseThrow(() -> new RuntimeException());
-
-        ChatRoom chatRoom = chatRoomRepository.findById(messageDto.chatRoomId())
-                .orElseThrow(() -> new RuntimeException());
-
-        String redisKey = "chat:room:" + messageDto.chatRoomId() + ":message";
-        redisTemplate.opsForList().leftPush(redisKey, messageDto);
-    }
-
     // RabbitMQ 브로커를 사용해서 특정 그룹 채팅방에 메시지를 보낸다.
     public void sendMessage(MessageDto messageDto) {
 
@@ -69,7 +54,7 @@ public class ChatService {
                 .senderId(messageDto.senderId())
                 .messageType(messageDto.messageType())
                 .content(messageDto.content())
-                .timestamp(LocalDateTime.now())
+                .timestamp(String.valueOf(LocalDateTime.now()))
                 .unreadCount(0)
                 .publishRetryCount(0)
                 .saveStatus(false)
