@@ -30,8 +30,8 @@ public class RabbitMQConsumer {
     public void receiveMessage(MessageDto messageDto, Channel channel, Message message) throws IOException {
 
         try {
-            userRepository.findById(messageDto.senderId()).orElseThrow(() -> new RuntimeException());
-            chatRoomRepository.findById(messageDto.chatRoomId()).orElseThrow(() -> new RuntimeException());
+            userRepository.findById(messageDto.senderId()).orElseThrow(RuntimeException::new);
+            chatRoomRepository.findById(messageDto.chatRoomId()).orElseThrow(RuntimeException::new);
             String redisKey = "chat:room:" + messageDto.chatRoomId() + ":message";
 
             redisTemplate.execute(new SessionCallback<List<Object>>() {
@@ -44,6 +44,9 @@ public class RabbitMQConsumer {
                         return operations.exec(); // Redis 트랜잭션 실행 (실제 저장)
                     } catch (RuntimeException e) {
                         operations.discard(); // 예외 발생 시 트랜잭션 롤백
+
+                        // TODO: REDIS 저장 실패 시 메시지 전송도 취소하는 메커니즘이 필요
+
                         throw e;
                     }
                 }
