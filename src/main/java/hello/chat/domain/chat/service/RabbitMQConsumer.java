@@ -22,9 +22,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RabbitMQConsumer {
 
-    private final UserRepository userRepository;
-    private final ChatRoomRepository chatRoomRepository;
-    private final RedisTemplate<String, Object> redisTemplate; // redis
+    // private final UserRepository userRepository;
+    // private final ChatRoomRepository chatRoomRepository;
+    // private final RedisTemplate<String, Object> redisTemplate; // redis
 
     /*
     @RabbitListener(queues = "chat.queue", ackMode = "MANUAL")

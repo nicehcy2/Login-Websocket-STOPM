@@ -53,8 +53,16 @@ public class ChatController {
     public void sendMessage(@DestinationVariable String roomId, @RequestBody MessageDto messageDto) {
 
         messageService.sendMessage(messageDto); // 메시지 전송
+    }
 
-        // messageService.saveMessages(messageDto);
+    /**
+     * 클라이언트로부터 메시지를 정상적으로 수신했는지 확인하는 메서드
+     * 클라이언트가 정상적으로 메시지를 수신했다면, Redis DB에 저장
+     */
+    @MessageMapping("chat.message.ack")
+    public void acknowledgeMessage(@RequestBody MessageDto messageDto) {
+
+        messageService.saveMessage(messageDto);
     }
 
     // 메시지 읽음 처리
