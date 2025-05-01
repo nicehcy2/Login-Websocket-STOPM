@@ -26,6 +26,7 @@ public class RabbitMQConsumer {
     private final ChatRoomRepository chatRoomRepository;
     private final RedisTemplate<String, Object> redisTemplate; // redis
 
+    /*
     @RabbitListener(queues = "chat.queue", ackMode = "MANUAL")
     public void receiveMessage(MessageDto messageDto, Channel channel, Message message) throws IOException {
 
@@ -66,4 +67,6 @@ public class RabbitMQConsumer {
     public void handleDeadLetter(MessageDto dto) {
         log.info("dead message = {}", dto.id());
     }
+
+     */
 }
