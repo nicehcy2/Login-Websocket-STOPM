@@ -3,7 +3,9 @@ package hello.chat.domain.chat.service;
 import com.github.f4b6a3.tsid.TsidCreator;
 import hello.chat.domain.chat.dto.MessageCorrelationData;
 import hello.chat.domain.chat.dto.MessageDto;
+import hello.chat.domain.chat.entity.Outbox;
 import hello.chat.domain.chat.repository.ChatRoomRepository;
+import hello.chat.domain.chat.repository.OutboxRepository;
 import hello.chat.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +31,7 @@ public class ChatService {
     private final RabbitTemplate rabbitTemplate; // rabbitmq
     private final UserRepository userRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final OutboxRepository outboxRepository;
 
     @Value("${rabbitmq.exchange.name}") private String CHAT_EXCHANGE_NAME;
     private static final String READ_STATUS_KEY_PREFIX = "read:message:";
@@ -43,6 +47,7 @@ public class ChatService {
     }
 
     // RabbitMQ 브로커를 사용해서 특정 그룹 채팅방에 메시지를 보낸다.
+    @Transactional
     public void sendMessage(MessageDto messageDto) {
 
         // TODO: userCount 저장하는 로직 추가
@@ -59,6 +64,21 @@ public class ChatService {
                 .saveStatus(false)
                 .build();
 
+        // outbox 저장소에 저장
+        Outbox outbox = Outbox.builder()
+                .messageId(message.id())
+                .chatRoomId(message.chatRoomId())
+                .senderId(message.senderId())
+                .messageType(message.messageType())
+                .content(message.content())
+                .timestamp(message.timestamp())
+                .unreadCount(message.unreadCount())
+                .publishRetryCount(message.publishRetryCount())
+                .saveStatus(message.saveStatus())
+                .build();
+
+        outboxRepository.save(outbox);
+
         // publisher confirm 콜백을 받을 때 어떤 메시지에 대한 확인인지 식별하기 위한 용도
         // 메시지의 고유 ID나 메타데이터를 담아서, ConfirmCallback이 호출될 때 ConfirmCallback 파라미터로 똑같이 돌아오므로, 메시지 추적 가능
         MessageCorrelationData messageCorrelationData = new MessageCorrelationData(message.id(), message);
@@ -73,18 +93,24 @@ public class ChatService {
 
     public void saveMessage(MessageDto messageDto) {
 
-        try {
-            userRepository.findById(messageDto.senderId()).orElseThrow(RuntimeException::new);
-            chatRoomRepository.findById(messageDto.chatRoomId()).orElseThrow(RuntimeException::new);
+        log.info("Received ACK for messageID: {} from userID: {}", messageDto.id(), messageDto.senderId());
+        MessageDto savedMessageDto = setMessageSaveStatus(messageDto);
+        log.info("Message status updated to 'DELIVERED': {}", messageDto.id());
 
-            String redisKey = "chat:room:" + messageDto.chatRoomId() + ":message";
+        try {
+            userRepository.findById(savedMessageDto.senderId()).orElseThrow(RuntimeException::new);
+            chatRoomRepository.findById(savedMessageDto.chatRoomId()).orElseThrow(RuntimeException::new);
+
+            String redisKey = "chat:room:" + savedMessageDto.chatRoomId() + ":message";
 
             redisTemplate.execute(new SessionCallback<List<Object>>() {
                 @Override
                 public <K, V> List<Object> execute(RedisOperations<K, V> operations) throws DataAccessException {
                     try {
                         operations.multi(); // Redis 트랜잭션 시작
-                        operations.opsForList().leftPush((K) redisKey, (V) messageDto);
+                        operations.opsForZSet().add((K) redisKey, (V) savedMessageDto, Double.parseDouble(savedMessageDto.id()));
+
+                        // TODO: ZSet과 Zset은 메시지 정렬 용, 그리고 실제 데이터는 String으로 저장하는게 어떤지 생각해보자
 
                         return operations.exec(); // Redis 트랜잭션 실행 (실제 저장)
                     } catch (RuntimeException e) {
@@ -122,5 +148,20 @@ public class ChatService {
     public long getReadCount(Long chatRoomId, Long messageId) {
         String key = READ_STATUS_KEY_PREFIX + chatRoomId.toString() + ":" + messageId.toString();
         return redisTemplate.opsForSet().size(key);
+    }
+
+    private MessageDto setMessageSaveStatus(MessageDto messageDto) {
+
+        return MessageDto.builder()
+                .id(String.valueOf(TsidCreator.getTsid().toLong())) // TSID ID 생성기, 시간에 따라 ID에 영향이 가고 최신 데이터일수록 ID 값이 커진다.
+                .chatRoomId(messageDto.chatRoomId())
+                .senderId(messageDto.senderId())
+                .messageType(messageDto.messageType())
+                .content(messageDto.content())
+                .timestamp(String.valueOf(LocalDateTime.now()))
+                .unreadCount(0)
+                .publishRetryCount(0)
+                .saveStatus(true)
+                .build();
     }
 }
