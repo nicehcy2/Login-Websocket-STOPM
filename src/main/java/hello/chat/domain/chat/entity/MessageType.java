@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum MessageType {
-    TEXT("text"), ENTER("enter");
+    TEXT("TEXT"), ENTER("ENTER"), EXIT("EXIT"), IMAGE("IMAGE");
 
     private final String value;
 

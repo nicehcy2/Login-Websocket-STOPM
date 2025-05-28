@@ -262,6 +262,7 @@ public class RabbitMQConfig {
         return new Jackson2JsonMessageConverter(); // 메시지를 JSON으로 직렬/역직렬화
     }
 
+    /*
     /**
      * @RabbitListener 애노테이션이 붙은 메소드가 메시지를 비동기적으로 처리할 수 있게 해주는 리스너 컨테이너를 설정
      * 메시지가 큐에 도착하면, SimpleRabbitListenerContainerFactory가 자동으로 리스너 컨테이너를 관리하여 메시지를 수신하고 처리
@@ -269,6 +270,8 @@ public class RabbitMQConfig {
      * @param connectionFactory RabbitMQ 연결 팩토리
      * @param messageConverter Json 데이터 직렬화/역직렬화
      */
+
+    /*
     @Bean
     public SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
 
@@ -288,4 +291,6 @@ public class RabbitMQConfig {
 
         return factory;
     }
+
+     */
 }
