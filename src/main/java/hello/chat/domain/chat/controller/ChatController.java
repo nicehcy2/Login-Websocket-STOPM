@@ -1,5 +1,6 @@
 package hello.chat.domain.chat.controller;
 
+import com.github.f4b6a3.tsid.TsidCreator;
 import hello.chat.domain.chat.dto.MessageDto;
 import hello.chat.domain.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -95,12 +97,15 @@ public class ChatController {
     public void enterUser(@DestinationVariable("roomId") Long roomId, MessageDto messageDto) {
 
         MessageDto enterMessageDto = MessageDto.builder()
-                .id(messageDto.id())
-                .messageType(messageDto.messageType())
-                .content(messageDto.senderId() + "님이 채팅방에 입장하였습니다.")
+                .id(String.valueOf(TsidCreator.getTsid().toLong()))
                 .chatRoomId(messageDto.chatRoomId())
                 .senderId(messageDto.senderId())
-                .timestamp(messageDto.timestamp())
+                .messageType(messageDto.messageType())
+                .content(messageDto.senderId() + "님이 채팅방에 입장하였습니다.")
+                .timestamp(String.valueOf(LocalDateTime.now()))
+                .unreadCount(0)
+                .publishRetryCount(0)
+                .saveStatus(false)
                 .build();
 
         try {
@@ -116,12 +121,15 @@ public class ChatController {
     public void exitUser(@DestinationVariable("roomId") Long roomId, MessageDto messageDto) {
 
         MessageDto exitMessageDto = MessageDto.builder()
-                .id(messageDto.id())
-                .messageType(messageDto.messageType())
-                .content(messageDto.senderId() + "님이 채팅방에 퇴장하였습니다.")
+                .id(String.valueOf(TsidCreator.getTsid().toLong()))
                 .chatRoomId(messageDto.chatRoomId())
                 .senderId(messageDto.senderId())
-                .timestamp(messageDto.timestamp())
+                .messageType(messageDto.messageType())
+                .content(messageDto.senderId() + "님이 채팅방에 퇴장하였습니다.")
+                .timestamp(String.valueOf(LocalDateTime.now()))
+                .unreadCount(0)
+                .publishRetryCount(0)
+                .saveStatus(false)
                 .build();
 
         try {

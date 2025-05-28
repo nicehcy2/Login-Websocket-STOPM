@@ -3,8 +3,10 @@ package hello.chat.domain.chat.entity;
 import hello.chat.domain.common.BaseEntity;
 import hello.chat.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.Builder;
 
 @Entity
+@Builder
 public class ChatRoomMembership extends BaseEntity {
 
     @Id
