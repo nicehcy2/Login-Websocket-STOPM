@@ -78,6 +78,7 @@ public class ChatService {
                 .build();
 
         outboxRepository.save(outbox);
+        log.info("outbox 저장소에 저장 완료");
 
         // publisher confirm 콜백을 받을 때 어떤 메시지에 대한 확인인지 식별하기 위한 용도
         // 메시지의 고유 ID나 메타데이터를 담아서, ConfirmCallback이 호출될 때 ConfirmCallback 파라미터로 똑같이 돌아오므로, 메시지 추적 가능
@@ -98,16 +99,19 @@ public class ChatService {
         log.info("Message status updated to 'DELIVERED': {}", messageDto.id());
 
         try {
-            userRepository.findById(savedMessageDto.senderId()).orElseThrow(RuntimeException::new);
-            chatRoomRepository.findById(savedMessageDto.chatRoomId()).orElseThrow(RuntimeException::new);
+            //userRepository.findById(savedMessageDto.senderId()).orElseThrow(RuntimeException::new);
+            //chatRoomRepository.findById(savedMessageDto.chatRoomId()).orElseThrow(RuntimeException::new);
 
-            String redisKey = "chat:room:" + savedMessageDto.chatRoomId() + ":message";
+            String redisKey = "chat:room:" + savedMessageDto.chatRoomId() + ":message:ZSET";
 
             redisTemplate.execute(new SessionCallback<List<Object>>() {
                 @Override
                 public <K, V> List<Object> execute(RedisOperations<K, V> operations) throws DataAccessException {
                     try {
                         operations.multi(); // Redis 트랜잭션 시작
+                        // operations.opsForList().rightPush((K) redisKey, (V) savedMessageDto);
+
+                        // TODO: 타입 관련해서 수정 꼭하자
                         operations.opsForZSet().add((K) redisKey, (V) savedMessageDto, Double.parseDouble(savedMessageDto.id()));
 
                         // TODO: ZSet과 Zset은 메시지 정렬 용, 그리고 실제 데이터는 String으로 저장하는게 어떤지 생각해보자
