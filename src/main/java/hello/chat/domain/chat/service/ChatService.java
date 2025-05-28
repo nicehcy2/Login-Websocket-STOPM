@@ -124,6 +124,7 @@ public class ChatService {
             });
         } catch (Exception e) {
 
+            // TODO: 재처리 로직 추가 (일단, MVP 기능은 아니니까 추후에 구현하자)
             log.error("메시지 처리 중 Redis 트랜잭션 실패 또는 기타 예외: {}", e.getMessage(), e);
         }
     }
