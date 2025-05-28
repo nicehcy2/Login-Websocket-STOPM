@@ -17,6 +17,6 @@ public class DebeziumOutboxKafkaListener {
     public void sendTest(ConsumerRecord<String, String> record) throws Exception {
 
         chatService.saveMessage(DebeziumMessageParser.parse(record.value()));
-        log.info("send message : {}", record.value());
+        log.info("begin to save message : {}", record.value());
     }
 }

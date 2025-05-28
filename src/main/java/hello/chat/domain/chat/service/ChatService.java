@@ -19,6 +19,7 @@ import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -94,7 +95,6 @@ public class ChatService {
 
     public void saveMessage(MessageDto messageDto) {
 
-        log.info("Received ACK for messageID: {} from userID: {}", messageDto.id(), messageDto.senderId());
         MessageDto savedMessageDto = setMessageSaveStatus(messageDto);
         log.info("Message status updated to 'DELIVERED': {}", messageDto.id());
 
@@ -102,19 +102,17 @@ public class ChatService {
             //userRepository.findById(savedMessageDto.senderId()).orElseThrow(RuntimeException::new);
             //chatRoomRepository.findById(savedMessageDto.chatRoomId()).orElseThrow(RuntimeException::new);
 
-            String redisKey = "chat:room:" + savedMessageDto.chatRoomId() + ":message:ZSET";
+            String zsetKey = "chat:room:" + savedMessageDto.chatRoomId() + ":message";
+            String stringKey = "chat:message:" + savedMessageDto.id();
 
             redisTemplate.execute(new SessionCallback<List<Object>>() {
                 @Override
                 public <K, V> List<Object> execute(RedisOperations<K, V> operations) throws DataAccessException {
                     try {
                         operations.multi(); // Redis 트랜잭션 시작
-                        // operations.opsForList().rightPush((K) redisKey, (V) savedMessageDto);
 
-                        // TODO: 타입 관련해서 수정 꼭하자
-                        operations.opsForZSet().add((K) redisKey, (V) savedMessageDto, Double.parseDouble(savedMessageDto.id()));
-
-                        // TODO: ZSet과 Zset은 메시지 정렬 용, 그리고 실제 데이터는 String으로 저장하는게 어떤지 생각해보자
+                        operations.opsForZSet().add((K) zsetKey, (V) savedMessageDto.id(), Double.parseDouble(savedMessageDto.id()));
+                        operations.opsForValue().set((K) stringKey, (V) savedMessageDto, Duration.ofDays(7));
 
                         return operations.exec(); // Redis 트랜잭션 실행 (실제 저장)
                     } catch (RuntimeException e) {
