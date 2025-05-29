@@ -55,12 +55,15 @@ dependencies {
 	/* Kafka */
 	implementation 'org.springframework.kafka:spring-kafka'
 
+	/* Spring Security */
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	testImplementation 'org.springframework.security:spring-security-test'
 
+	/* Thymeleaf */
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
 }
 
 tasks.named('test') {
