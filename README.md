@@ -1,3 +1,5 @@
+# Chat Applicaiton
+
 WebSocket, RabbitMQ, Spring STOMP를 활용한 채팅 애플리케이션 개발 및 연습 저장소.
 
 Redis와 MySQL을 저장소로 사용.
