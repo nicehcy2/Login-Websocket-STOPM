@@ -39,5 +39,5 @@ public class ChatRoom extends BaseEntity {
     private String imageUrl;
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL)
-    private List<ChatRoomMembership> chatRoomMembershipList = new ArrayList<>();
+    private List<ChatRoomMembership> chatRoomMembershipList;
 }

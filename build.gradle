@@ -55,9 +55,28 @@ dependencies {
 	/* Kafka */
 	implementation 'org.springframework.kafka:spring-kafka'
 
+	/* Spring Security */
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	/* Thymeleaf */
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+	/* 타임리프 템플릿 결합을 위한 라이브러리 의존성 추가 */
+	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
+
+	/* 부트스트랩 라이브러리 의존성 추가 */
+	implementation 'org.webjars:bootstrap:5.3.3'
+
+	/* Spring Security OAuth2 클라이언트 의존성 추가 */
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	/* 타임리프 스프링 시큐리티 */
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
 }
 
 tasks.named('test') {

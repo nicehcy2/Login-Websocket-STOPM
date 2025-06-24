@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"
+          href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet"/>
+    <title>Login</title>
+
+    <style>
+        .container {
+            max-width: 560px;
+        }
+        .field-error {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="py-5 text-center">
+        로그인
+    </div>
+
+    <form action="" th:action="@{/users/login}" method="post">
+        <div>
+            <label for="email">로그인 ID</label>
+            <input type="text" id="email" name="email" class="form-control" required>
+        </div>
+        <div>
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" class="form-control" required>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="row">
+            <div class="col">
+                <button class="w-100 btn btn-primary btn-lg" type="submit">로그인</button>
+            </div>
+            <div class="col">
+                <buton class="w-100 btn btn-primary btn-lg" onclick="location.href='home.html'"
+                       th:onclick="|location.href='@{/home}'|"
+                       type="button">취소</buton>
+            </div>
+        </div>
+    </form>
+
+    <p class="field-error" th:if="${param.error}">사용자 이름 또는 비밀번호가 잘못되었습니다.</p>
+    <p th:if="${param.logout}">로그아웃 되었습니다.</p>
+
+    <p>계정이 없나요? <a th:href="@{/users/join}">Sign up</a></p>
+</div>
+</body>
+</html>

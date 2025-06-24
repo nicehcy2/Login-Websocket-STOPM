@@ -131,7 +131,7 @@ public class ChatService {
                 .orElseThrow(RuntimeException::new);
 
         // 이미 가입 되어 있다면
-        if (chatRoomMembershipRepository.findByUserIdAndChatroomId(messageDto.senderId(), messageDto.chatRoomId()).isPresent()) {
+        if (chatRoomMembershipRepository.findByUserAndChatRoom(user, chatRoom).isPresent()) {
             throw new RuntimeException();
         }
 
@@ -181,7 +181,7 @@ public class ChatService {
                 .orElseThrow(RuntimeException::new);
 
         // 이미 탈퇴 되어 있다면
-        chatRoomMembershipRepository.findByUserIdAndChatroomId(messageDto.senderId(), messageDto.chatRoomId())
+        chatRoomMembershipRepository.findByUserAndChatRoom(user, chatRoom)
                         .orElseThrow(RuntimeException::new);
 
         chatRoom.setParticipationCount(chatRoom.getParticipationCount() - 1);
