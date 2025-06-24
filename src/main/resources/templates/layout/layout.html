@@ -7,6 +7,11 @@
     <body>
         <div class="container">
             <div th:replace="common/common_header :: commonHeader"></div>
+
+            <div layout:fragment="content">
+                <p>안녕하세요!</p>
+            </div>
+
             <div th:replace="common/common_body:: commonBody"></div>
         </div>
     </body>

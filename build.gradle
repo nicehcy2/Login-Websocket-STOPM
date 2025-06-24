@@ -68,6 +68,13 @@ dependencies {
 	/* 부트스트랩 라이브러리 의존성 추가 */
 	implementation 'org.webjars:bootstrap:5.3.3'
 
+	/* Spring Security OAuth2 클라이언트 의존성 추가 */
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	/* 타임리프 스프링 시큐리티 */
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

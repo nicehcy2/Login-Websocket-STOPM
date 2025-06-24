@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       layout:decorate="~{layout/layout}">
 
 <head>
@@ -9,13 +10,11 @@
 
     <title>Home</title>
 </head>
-
 <body>
-    <h1>Chat Application</h1>
-    <!--
-    <div>
-        <a href="/login" th:href="@{login}">Login</a> | <a href="/users/add" th:href="@{/users/add}">Register</a>
+    <div layout:fragment="content">
+        <div sec:authorize="isAuthenticated()">
+            <p>안녕하세요, <span sec:authentication="name"></span> 님!</p>
+        </div>
     </div>
-    -->
 </body>
 </html>
