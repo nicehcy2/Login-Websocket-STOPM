@@ -19,7 +19,7 @@
 <body>
 <div class="container">
     <div class="py-5 text-center">
-        로그인
+        <h2>로그인</h2>
     </div>
 
     <form action="" th:action="@{/users/login}" method="post">
@@ -49,7 +49,7 @@
     <p class="field-error" th:if="${param.error}">사용자 이름 또는 비밀번호가 잘못되었습니다.</p>
     <p th:if="${param.logout}">로그아웃 되었습니다.</p>
 
-    <p>계정이 없나요? <a th:href="@{/users/join}">Sign up</a></p>
+    <br/><p>계정이 없나요? <a th:href="@{/users/join}">Sign up</a></p>
 </div>
 </body>
 </html>

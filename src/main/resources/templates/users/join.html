@@ -28,12 +28,10 @@
 
         <div th:if="${error}" th:text="${error}" class="field-error"></div>
 
-        <!--
-        <div th:if="${#field.hasGlobalErrors()}">
+        <div th:if="${#fields.hasGlobalErrors()}">
             <p class="field-error" th:each="err : ${#fields.globalErrors()}"
                th:text="${err}">전체 오류 메시지</p>
         </div>
-        -->
 
         <div>
             <label for="email">로그인 ID</label>
