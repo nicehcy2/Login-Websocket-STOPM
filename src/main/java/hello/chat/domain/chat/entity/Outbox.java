@@ -1,6 +1,6 @@
 package hello.chat.domain.chat.entity;
 
-import hello.chat.domain.common.BaseEntity;
+import hello.chat.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

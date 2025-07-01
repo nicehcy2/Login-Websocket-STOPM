@@ -1,4 +1,4 @@
-package hello.chat.domain.common;
+package hello.chat.common;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;

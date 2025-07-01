@@ -1,12 +1,11 @@
 package hello.chat.domain.chat.entity;
 
-import hello.chat.domain.common.BaseEntity;
+import hello.chat.common.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity

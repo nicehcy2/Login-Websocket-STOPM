@@ -20,11 +20,8 @@
 <body>
     <div layout:fragment="content">
 
-        <div sec:authorize="isAuthenticated()">
-            <br/><p>안녕하세요, <span sec:authentication="name"></span> 님!</p>
-        </div><br/>
-
         <div class="nginx">
+            <br/>
             <h1>Welcome to nginx!</h1>
             <p>If you see this page, the nginx web server is successfully installed and
                 working. Further configuration is required.</p>
